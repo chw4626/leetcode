@@ -20,3 +20,19 @@ private void backtrack(List<List<Integer>> list , List<Integer> tempList, int []
 }
 
 }
+for{
+    [0]
+    back{
+        [01]
+        back{
+            [012]
+            back{}
+            remove2 --[01]
+        }
+        remove 1 -- [0]
+        [02]{}
+    }
+    remove 0 -- []
+    [1]{}
+    [2]{}
+}
