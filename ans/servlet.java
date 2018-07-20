@@ -1,0 +1,133 @@
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Date;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.Statement;  
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ * Servlet implementation class testservlet
+ */
+@WebServlet("/testservlet")
+public class testservlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+    //private static String order;
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public testservlet() {
+        super();
+        // TODO Auto-generated constructor stub
+} 
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		//response.getWriter().append("Served at: ").append(request.getContextPath());
+		
+		ServletConfig config = this.getServletConfig();
+		String str = config.getInitParameter("data");		
+		doPost(request, response);
+		System.out.println("$$$$$$$$$$$$$$$$$");
+		System.out.println(str);
+	
+	}
+	
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		//doGet(request, response);
+		//response.sendRedirect("http://www.baidu.com");
+		// 指定允许其他域名访问 
+		response.setHeader("Access-Control-Allow-Origin", "*");
+		// 响应类型 
+		response.setHeader("Access-Control-Allow-Methods", "POST");
+		// 响应头设置 
+		response.setHeader("Access-Control-Allow-Headers", "x-requested-with,content-type");
+
+		System.out.println("收到一个消息在时间："+new Date());
+		request.setCharacterEncoding("UTF-8");
+		//String username = request.getParameter("username");
+		//String pwd = request.getParameter("password");
+		String order = request.getQueryString();
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");     //加载MYSQL JDBC驱动程序   
+           System.out.println("Success loading Mysql Driver!");
+          }
+          catch (Exception e) {
+            System.out.print("Error loading Mysql Driver!");
+            e.printStackTrace();
+          }
+          try {
+            Connection connect = DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/sys","root","chang971106");
+                 //连接URL为   jdbc:mysql//服务器地址/数据库名  ，后面的2个参数分别是登陆用户名和密码
+       
+            System.out.println("Success connect Mysql server!");
+            Statement stmt = connect.createStatement();
+            ResultSet rs;
+            if(order == null) {
+            	rs = stmt.executeQuery("select * from user");
+            }
+            else {
+            	String[] info = order.split("%27");
+                rs = stmt.executeQuery("select * from user where "+info[0]+"'"+info[1]+"'");
+                System.out.println( "select * from user where "+info[0]+"'"+info[1]+"'");
+            }
+            
+            ResultSetMetaData metaData =  rs.getMetaData();  
+            int columnCount= metaData.getColumnCount();   
+            
+            JSONArray array = new JSONArray();
+            PrintWriter out = response .getWriter();
+            System.out.println(order);
+            //System.out.println( "select * from user where "+info[0]+"'"+info[1]+"'");
+                                                                    //user 为你表的名称
+            while(rs.next()){ 
+                JSONObject jsonObj = new JSONObject();       
+                for(int i = 1; i <= columnCount;i++)  
+                 {  
+                  String columnName = metaData.getColumnLabel(i);  
+                  String value =rs.getString(columnName);  
+                  jsonObj.put(columnName, value);  
+                 }  
+                 array.put(jsonObj);  
+               }
+               System.out.println("转换JSON数据：");  
+               System.out.println(array.toString());  
+               out.print(array);
+              
+            
+      /*while (rs.next()) {
+    	      //out.print("data: ");
+    	      response.getWriter().append(rs.getString("name"))
+    	      .append(rs.getString("password"));
+            }*/
+          }
+          catch (Exception e) {
+            System.out.print("get data error!");
+            e.printStackTrace();
+          }
+          
+	}
+}
